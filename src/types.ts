@@ -53,6 +53,13 @@ export interface RegionConfig<TProps extends Record<string, unknown> = Record<st
   justify?: RegionAlign;
   /** Inner padding override (defaults to the global `--c2-panel-padding`). */
   padding?: string;
+  /**
+   * Corner rounding for this region's box, e.g. `"16px"` or `"0"`. Useful for
+   * the otherwise-square `center` slot in split mode (the region clips its
+   * content to the radius). Defaults to the theme `--c2-panel-radius` for
+   * chrome regions and to square for bare regions.
+   */
+  radius?: string;
   /** Render the frosted-glass panel chrome. Defaults to `true` for the four
    *  edge regions and `false` for `center` (so the core slot stays clean). */
   chrome?: boolean;
@@ -102,6 +109,18 @@ export interface ThemeTokens {
 }
 
 /**
+ * Global layout strategy for the shell.
+ *
+ * - `"split"` (default) — a classic dashboard: every region occupies its own
+ *   CSS-Grid track and the `center` slot takes the remaining space. Panels
+ *   push the content; nothing overlaps.
+ * - `"fullscreen"` — a map / C2 layout: the `center` slot fills the entire
+ *   viewport edge-to-edge (ideal for a GIS/3D map base layer) and the edge
+ *   regions float above it as glass overlays, sized by their `size` tracks.
+ */
+export type DisplayMode = "split" | "fullscreen";
+
+/**
  * The strict, static layout contract. Read once at boot to scaffold the shell.
  * There is no `activeMode`, no transitions, and no runtime mutation surface —
  * this object fully describes the layout.
@@ -109,6 +128,12 @@ export interface ThemeTokens {
 export interface C2LayoutConfig {
   /** Optional identifier (telemetry / persistence). */
   id?: string;
+  /**
+   * Global layout strategy. `"split"` tiles regions into grid tracks (classic
+   * dashboard); `"fullscreen"` makes `center` a full-bleed base layer with the
+   * edge regions floating above it. Defaults to `"split"`.
+   */
+  displayMode?: DisplayMode;
   /** The region allocation. */
   regions: RegionMap;
   /** Theme token overrides applied to the shell root. */

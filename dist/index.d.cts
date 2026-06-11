@@ -45,6 +45,13 @@ interface RegionConfig<TProps extends Record<string, unknown> = Record<string, u
     justify?: RegionAlign;
     /** Inner padding override (defaults to the global `--c2-panel-padding`). */
     padding?: string;
+    /**
+     * Corner rounding for this region's box, e.g. `"16px"` or `"0"`. Useful for
+     * the otherwise-square `center` slot in split mode (the region clips its
+     * content to the radius). Defaults to the theme `--c2-panel-radius` for
+     * chrome regions and to square for bare regions.
+     */
+    radius?: string;
     /** Render the frosted-glass panel chrome. Defaults to `true` for the four
      *  edge regions and `false` for `center` (so the core slot stays clean). */
     chrome?: boolean;
@@ -91,6 +98,17 @@ interface ThemeTokens {
     fontSans: string;
 }
 /**
+ * Global layout strategy for the shell.
+ *
+ * - `"split"` (default) — a classic dashboard: every region occupies its own
+ *   CSS-Grid track and the `center` slot takes the remaining space. Panels
+ *   push the content; nothing overlaps.
+ * - `"fullscreen"` — a map / C2 layout: the `center` slot fills the entire
+ *   viewport edge-to-edge (ideal for a GIS/3D map base layer) and the edge
+ *   regions float above it as glass overlays, sized by their `size` tracks.
+ */
+type DisplayMode = "split" | "fullscreen";
+/**
  * The strict, static layout contract. Read once at boot to scaffold the shell.
  * There is no `activeMode`, no transitions, and no runtime mutation surface —
  * this object fully describes the layout.
@@ -98,6 +116,12 @@ interface ThemeTokens {
 interface C2LayoutConfig {
     /** Optional identifier (telemetry / persistence). */
     id?: string;
+    /**
+     * Global layout strategy. `"split"` tiles regions into grid tracks (classic
+     * dashboard); `"fullscreen"` makes `center` a full-bleed base layer with the
+     * edge regions floating above it. Defaults to `"split"`.
+     */
+    displayMode?: DisplayMode;
     /** The region allocation. */
     regions: RegionMap;
     /** Theme token overrides applied to the shell root. */
@@ -152,14 +176,17 @@ interface RegionSlotProps {
 }
 /**
  * Renders one region of the shell:
- *  1. positions the region cell in the 3×3 grid,
- *  2. applies optional frosted-glass chrome + the default item flow,
+ *  1. tags the region for its 3×3 grid placement + flow via CSS classes
+ *     (placement lives in CSS so display-mode overrides can take over),
+ *  2. applies optional frosted-glass chrome,
  *  3. wraps the component in a `container-type: inline-size` slot so it can
  *     self-adjust via `@container` queries based on its region's width,
  *  4. resolves the single component from the registry and injects the static
  *     `currentRegion` (+ `regionDirection`) awareness props.
  *
- * Pure render — no state, no effects, no listeners.
+ * Pure render — no state, no effects, no listeners. Inline styles carry only
+ * config-driven cosmetics (align/justify/padding/style); structural placement
+ * and flow are class-based so they never out-specify the stylesheet.
  */
 declare function RegionSlot({ region, config, registry }: RegionSlotProps): react.JSX.Element | null;
 
@@ -191,4 +218,4 @@ declare function buildThemeVars(theme?: Record<string, string | undefined>): CSS
 /** Identity helper for authoring a strongly-typed, autocompleted config. */
 declare function defineLayoutConfig<const T extends C2LayoutConfig>(config: T): T;
 
-export { C2AppShell, type C2AppShellProps, type C2Component, type C2LayoutConfig, type ComponentMap, DEFAULT_CHROME, DEFAULT_DIRECTION, type RegionAlign, type RegionConfig, type RegionFlow, type RegionId, type RegionInjectedProps, type RegionMap, RegionSlot, type RegionSlotProps, type ThemeTokens, buildThemeVars, computeGridTemplate, defineLayoutConfig, regionPlacement, resolveDirection, toFlexValue };
+export { C2AppShell, type C2AppShellProps, type C2Component, type C2LayoutConfig, type ComponentMap, DEFAULT_CHROME, DEFAULT_DIRECTION, type DisplayMode, type RegionAlign, type RegionConfig, type RegionFlow, type RegionId, type RegionInjectedProps, type RegionMap, RegionSlot, type RegionSlotProps, type ThemeTokens, buildThemeVars, computeGridTemplate, defineLayoutConfig, regionPlacement, resolveDirection, toFlexValue };

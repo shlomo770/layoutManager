@@ -1,39 +1,61 @@
 import { C2AppShell, defineLayoutConfig, type ComponentMap } from "@c2/layout-engine";
 import "@c2/layout-engine/styles.css";
 import { MapCanvas } from "./MapCanvas";
-import { StatusHeader, NavRail, ControlPanel, AlertTicker } from "./components";
+import {
+  TopNavbar,
+  ThreatTree,
+  MainIncidentTable,
+  IncidentDetails,
+  SystemStatusTicker,
+} from "./components";
 
-/** The component registry: maps manifest `component` keys to React components.
- *  The `center` slot is generic — point it at a map, table, video, anything. */
+/** The component registry: maps the manifest `component` keys to React
+ *  components. In fullscreen mode the `center` hosts a full-bleed map base
+ *  layer and the edge panels float above it. */
 const registry: ComponentMap = {
-  StatusHeader,
-  NavRail,
-  ControlPanel,
-  AlertTicker,
+  TopNavbar,
+  ThreatTree,
+  MainIncidentTable,
+  IncidentDetails,
+  SystemStatusTicker,
   MapView: MapCanvas,
 };
 
 /**
- * A single static manifest fully describes the dashboard. Track sizes drive the
- * grid; omit `left` or `right` and that track collapses to 0px so the center
- * map claims the space. There is no mode switching and no runtime mutation.
+ * A single static manifest fully describes the SOC dashboard. Track sizes drive
+ * the grid; omit `left` or `right` and that track collapses to 0px so the
+ * center claims the space. There is no mode switching and no runtime mutation.
  */
-const config = defineLayoutConfig({
-  id: "sentinel-shell",
+export const socLightConfig = defineLayoutConfig({
+  displayMode: "split",
   theme: {
-    accent: "#00f2fe",
-    gap: "16px",
+    // Light-mode palette
+    accent: "#0066cc",
+    canvasBg: "#e9eef5",
+    text: "#ffffff",
+    textDim: "#64748b",
+    panelBg: "rgba(39, 37, 77, 0.88)",
+    panelBlur: "16px",
+    panelBorder: "1px solid rgba(0, 0, 0, 0.08)",
+    panelShadow: "0 8px 24px rgba(15, 23, 42, 0.08)",
+
+    // Status colors (consumed by the demo components via var(--c2-status-*))
+    statusNominal: "#0d9488",
+    statusWarning: "#d97706",
+    statusCritical: "#e11d48",
+
+    gap: "12px",
     panelPadding: "16px",
   },
   regions: {
-    top: { size: "64px", component: "StatusHeader" },
-    left: { size: "220px", component: "NavRail" },
-    center: { component: "MapView" },
-    right: { size: "320px", component: "ControlPanel" },
-    bottom: { size: "56px", component: "AlertTicker" },
+    top: { size: "64px", component: "TopNavbar" },
+    left: { size: "260px", component: "ThreatTree" },
+    center: { component: "MapView" , radius: "16px" }, // full-bleed base layer in fullscreen mode
+    right: { size: "380px", component: "IncidentDetails" },
+    bottom: { size: "44px", component: "SystemStatusTicker" },
   },
 });
 
 export function App() {
-  return <C2AppShell config={config} registry={registry} />;
+  return <C2AppShell config={socLightConfig} registry={registry} />;
 }

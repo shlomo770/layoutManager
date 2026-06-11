@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react";
 import type { ComponentMap, RegionConfig, RegionId } from "./types";
-import { DEFAULT_CHROME, regionPlacement, resolveDirection, toFlexValue } from "./grid";
+import { DEFAULT_CHROME, resolveDirection, toFlexValue } from "./grid";
 
 export interface RegionSlotProps {
   region: RegionId;
@@ -10,14 +10,17 @@ export interface RegionSlotProps {
 
 /**
  * Renders one region of the shell:
- *  1. positions the region cell in the 3×3 grid,
- *  2. applies optional frosted-glass chrome + the default item flow,
+ *  1. tags the region for its 3×3 grid placement + flow via CSS classes
+ *     (placement lives in CSS so display-mode overrides can take over),
+ *  2. applies optional frosted-glass chrome,
  *  3. wraps the component in a `container-type: inline-size` slot so it can
  *     self-adjust via `@container` queries based on its region's width,
  *  4. resolves the single component from the registry and injects the static
  *     `currentRegion` (+ `regionDirection`) awareness props.
  *
- * Pure render — no state, no effects, no listeners.
+ * Pure render — no state, no effects, no listeners. Inline styles carry only
+ * config-driven cosmetics (align/justify/padding/style); structural placement
+ * and flow are class-based so they never out-specify the stylesheet.
  */
 export function RegionSlot({ region, config, registry }: RegionSlotProps) {
   const direction = resolveDirection(region, config.direction);
@@ -35,11 +38,10 @@ export function RegionSlot({ region, config, registry }: RegionSlotProps) {
   }
 
   const regionStyle: CSSProperties = {
-    ...regionPlacement(region),
-    flexDirection: direction,
     alignItems: toFlexValue(config.align),
     justifyContent: toFlexValue(config.justify),
     padding: config.padding,
+    borderRadius: config.radius,
     ...config.style,
   };
 

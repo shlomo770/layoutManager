@@ -28,6 +28,7 @@ export {
 // --- Types: the static layout contract ---
 export type {
   C2LayoutConfig,
+  DisplayMode,
   RegionId,
   RegionConfig,
   RegionMap,

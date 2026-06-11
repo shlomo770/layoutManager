@@ -32,10 +32,16 @@ export interface C2AppShellProps {
  */
 export function C2AppShell({ config, registry, className, style }: C2AppShellProps) {
   const { regions } = config;
+  const displayMode = config.displayMode ?? "split";
   const template = computeGridTemplate(regions);
   const themeVars = buildThemeVars(config.theme);
 
-  const rootClassName = ["c2-appshell", config.className, className]
+  const rootClassName = [
+    "c2-appshell",
+    `c2-variant-${displayMode}`,
+    config.className,
+    className,
+  ]
     .filter(Boolean)
     .join(" ");
 
@@ -47,7 +53,7 @@ export function C2AppShell({ config, registry, className, style }: C2AppShellPro
   };
 
   return (
-    <div className={rootClassName} style={rootStyle}>
+    <div className={rootClassName} style={rootStyle} data-display-mode={displayMode}>
       {REGION_ORDER.map((region) => {
         const regionConfig = regions[region];
         if (!regionConfig) return null;

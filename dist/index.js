@@ -70,11 +70,10 @@ function RegionSlot({ region, config, registry }) {
     return null;
   }
   const regionStyle = {
-    ...regionPlacement(region),
-    flexDirection: direction,
     alignItems: toFlexValue(config.align),
     justifyContent: toFlexValue(config.justify),
     padding: config.padding,
+    borderRadius: config.radius,
     ...config.style
   };
   const regionClassName = [
@@ -96,16 +95,22 @@ function RegionSlot({ region, config, registry }) {
 var REGION_ORDER = ["top", "left", "center", "right", "bottom"];
 function C2AppShell({ config, registry, className, style }) {
   const { regions } = config;
+  const displayMode = config.displayMode ?? "split";
   const template = computeGridTemplate(regions);
   const themeVars = buildThemeVars(config.theme);
-  const rootClassName = ["c2-appshell", config.className, className].filter(Boolean).join(" ");
+  const rootClassName = [
+    "c2-appshell",
+    `c2-variant-${displayMode}`,
+    config.className,
+    className
+  ].filter(Boolean).join(" ");
   const rootStyle = {
     ...themeVars,
     gridTemplateColumns: template.gridTemplateColumns,
     gridTemplateRows: template.gridTemplateRows,
     ...style
   };
-  return /* @__PURE__ */ jsx("div", { className: rootClassName, style: rootStyle, children: REGION_ORDER.map((region) => {
+  return /* @__PURE__ */ jsx("div", { className: rootClassName, style: rootStyle, "data-display-mode": displayMode, children: REGION_ORDER.map((region) => {
     const regionConfig = regions[region];
     if (!regionConfig) return null;
     return /* @__PURE__ */ jsx(

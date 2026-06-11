@@ -74,7 +74,31 @@
   overflow: hidden;
 }
 
-/* Default item flow (a manifest `direction` overrides this inline). */
+/* Fixed placement inside the 3×3 grid. Driven entirely by CSS (not inline
+   styles) so display-mode overrides like `fullscreen` can take over cleanly.
+   rows: [ top | center | bottom ] · columns: [ left | center | right ] */
+.c2-region--top {
+  grid-column: 1 / 4;
+  grid-row: 1 / 2;
+}
+.c2-region--left {
+  grid-column: 1 / 2;
+  grid-row: 2 / 3;
+}
+.c2-region--center {
+  grid-column: 2 / 3;
+  grid-row: 2 / 3;
+}
+.c2-region--right {
+  grid-column: 3 / 4;
+  grid-row: 2 / 3;
+}
+.c2-region--bottom {
+  grid-column: 1 / 4;
+  grid-row: 3 / 4;
+}
+
+/* Default item flow (a manifest `direction` override emits a different class). */
 .c2-region--row {
   flex-direction: row;
   align-items: stretch;
@@ -168,4 +192,68 @@
   .c2-hide-narrow {
     display: none;
   }
+}
+
+/* -----------------------------------------------------------------------------
+ * 6. Display modes
+ * -------------------------------------------------------------------------- */
+
+/* "split" (default): the base grid above already IS split mode — the center
+   stays in column 2 / row 2 and the panels use their default solid layouts.
+   `.c2-variant-split` is emitted only as an explicit override hook. */
+
+/* ----- "fullscreen": overlapping layers, identical tracks -----
+ *
+ * The `grid-template-columns/-rows` are NOT touched, so every panel keeps its
+ * EXACT split-mode dimensions and position. We only re-layer with z-index:
+ *   Layer 0 — the center map slot spans the whole grid beneath everything.
+ *   Layer 1 — the edge regions stay in their original tracks and float on top.
+ * No resizing, no reflow, no runtime state.
+ */
+
+/* Empty transparent space passes clicks/drag/zoom straight through to the map. */
+.c2-variant-fullscreen {
+  pointer-events: none;
+}
+
+/* Layer 0 — center map spans all rows & columns (still a grid item, no abspos).
+   A negative margin equal to the root padding lets it break out to a true,
+   edge-to-edge full bleed (no surrounding frame); square corners since it
+   reaches the screen edges. */
+.c2-variant-fullscreen .c2-region--center {
+  grid-column: 1 / -1;
+  grid-row: 1 / -1;
+  margin: calc(-1 * var(--c2-gap));
+  position: relative;
+  z-index: 0;
+  border-radius: 0;
+  pointer-events: auto; /* the map itself stays fully interactive */
+}
+
+/* Layer 1 — edge regions stay locked in their original tracks (no shift, no
+   resize). They become transparent, click-through positioning wrappers. */
+.c2-variant-fullscreen .c2-region:not(.c2-region--center) {
+  z-index: 1;
+  pointer-events: none;
+  padding: 0;
+  background: none;
+  border: none;
+  box-shadow: none;
+  overflow: visible; /* let the floating card's shadow breathe */
+}
+
+/* The inner slot transforms into the floating glass card. It fills the region
+   (which fills the track), so its outer box matches split mode exactly. Every
+   visual is driven by the theme tokens — NO hard-coded colors — so the host
+   developer's `theme` fully controls the look in fullscreen too. */
+.c2-variant-fullscreen .c2-region:not(.c2-region--center) > .c2-slot {
+  pointer-events: auto; /* widgets inside the card remain clickable */
+  padding: var(--c2-panel-padding);
+  background: var(--c2-panel-bg);
+  -webkit-backdrop-filter: blur(var(--c2-panel-blur));
+  backdrop-filter: blur(var(--c2-panel-blur));
+  border: var(--c2-panel-border);
+  border-radius: var(--c2-panel-radius);
+  box-shadow: var(--c2-panel-shadow);
+  color: var(--c2-text);
 }

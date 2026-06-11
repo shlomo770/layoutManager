@@ -90,6 +90,7 @@ A single, serializable object fully describes the layout.
 ```ts
 interface C2LayoutConfig {
   id?: string;
+  displayMode?: "split" | "fullscreen";            // defaults to "split"
   regions: Partial<Record<RegionId, RegionConfig>>; // top | bottom | left | right | center
   theme?: Partial<ThemeTokens>;
   className?: string;
@@ -103,6 +104,7 @@ interface RegionConfig {
   align?: RegionAlign;
   justify?: RegionAlign;
   padding?: string;
+  radius?: string;        // corner rounding for this region, e.g. "16px" | "0"
   chrome?: boolean;       // glass panel chrome (default: true for edges, false for center)
   className?: string;
   style?: CSSProperties;
@@ -118,6 +120,49 @@ interface RegionConfig {
 | `center` | center cell          | `column`     | no (frameless) |
 
 `size` is read straight into the grid template. An **omitted** side region collapses to `0px`; a region present without `size` sizes to its content (`auto`).
+
+### Corner rounding
+
+Rounding is fully config-driven (no hard-coded values):
+
+- **All panels** — set the theme token `panelRadius` (`theme: { panelRadius: "0" }` for square, `"14px"` for rounded).
+- **A single region** — set `radius` on that region. This is the way to round the otherwise-square `center` slot in split mode:
+
+```tsx
+regions: {
+  center: { component: "DataTable", radius: "16px" }, // round just the center
+  right:  { size: "320px", component: "Panel", radius: "0" }, // square just this panel
+}
+```
+
+The region clips its content to the radius (`overflow: hidden`), so maps/tables/videos round cleanly.
+
+### Display modes
+
+`displayMode` switches the global layout strategy:
+
+| Mode                 | Behavior                                                                                                   |
+| -------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `"split"` *(default)* | Classic dashboard — every region occupies its own grid track; `center` takes the remaining space.          |
+| `"fullscreen"`        | Map / C2 layout — `center` fills the entire viewport edge-to-edge (base layer) and the edge regions float above it as glass overlays, sized by their `size` tracks. |
+
+```tsx
+const config = defineLayoutConfig({
+  displayMode: "fullscreen",      // map base + floating panels
+  regions: {
+    center: { component: "MapView" },       // full-bleed beneath the overlays
+    left:   { size: "300px", component: "Tracks" },
+    right:  { size: "360px", component: "Details" },
+  },
+});
+```
+
+How `fullscreen` works (pure CSS layering, zero runtime state):
+
+- **Identical tracks** — the grid template is the same in both modes, so panels keep their exact split-mode size and position; nothing stretches or reflows.
+- **Center = full bleed** — the `center` slot spans every row/column and breaks out of the grid padding to reach the screen edges (square corners, since it's edge-to-edge).
+- **Floating glass panels** — the edge regions stay in their tracks and layer on top (`z-index`), with their card visuals driven entirely by your theme tokens (`panelBg`, `panelBlur`, `panelBorder`, …) — no hard-coded colors.
+- **Pointer pass-through** — clicks/drag/zoom on empty space go straight to the map; only the panel cards (and their widgets) capture input.
 
 ---
 
@@ -182,7 +227,7 @@ See `ThemeTokens` for the full list (each maps to a `--c2-*` variable).
 | `RegionSlot`         | component | Single-region renderer (advanced use).             |
 | `defineLayoutConfig` | helper    | Identity helper for typed, autocompleted configs.  |
 | `computeGridTemplate`, `regionPlacement`, `resolveDirection`, `buildThemeVars`, `toFlexValue`, `DEFAULT_DIRECTION`, `DEFAULT_CHROME` | utilities | Low-level building blocks. |
-| `C2LayoutConfig`, `RegionConfig`, `RegionMap`, `RegionId`, `RegionFlow`, `RegionAlign`, `ThemeTokens`, `RegionInjectedProps`, `C2Component`, `ComponentMap` | types | The full contract. |
+| `C2LayoutConfig`, `DisplayMode`, `RegionConfig`, `RegionMap`, `RegionId`, `RegionFlow`, `RegionAlign`, `ThemeTokens`, `RegionInjectedProps`, `C2Component`, `ComponentMap` | types | The full contract. |
 
 ---
 
