@@ -1,0 +1,171 @@
+/* =============================================================================
+ * @c2/layout-engine — Unified Design System & Layout
+ *
+ * One core stylesheet: tactical dark-theme tokens, the static 5-region grid
+ * structure, frosted-glass panel chrome, and container-query utilities.
+ *
+ * Import once in your host app:  import "@c2/layout-engine/styles.css";
+ * Override any `--c2-*` token via the manifest `theme` block (inline vars) or
+ * globally in your own CSS.
+ * ========================================================================== */
+
+/* -----------------------------------------------------------------------------
+ * 1. Design tokens
+ * -------------------------------------------------------------------------- */
+.c2-appshell {
+  /* Branding / core knobs */
+  --c2-accent: #00f2fe;
+  --c2-accent-soft: rgba(0, 242, 254, 0.15);
+  --c2-gap: 16px;
+  --c2-panel-padding: 16px;
+
+  /* Glass panel chrome */
+  --c2-panel-bg: rgba(10, 15, 30, 0.72);
+  --c2-panel-blur: 12px;
+  --c2-panel-border: 1px solid rgba(255, 255, 255, 0.08);
+  --c2-panel-radius: 14px;
+  --c2-panel-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 1px 0 rgba(255, 255, 255, 0.04) inset;
+
+  /* Canvas + typography */
+  --c2-canvas-bg: #05070f;
+  --c2-text: #e6f1ff;
+  --c2-text-dim: #8aa0bd;
+  --c2-font-mono: "JetBrains Mono", "SFMono-Regular", ui-monospace, "Cascadia Code",
+    Menlo, Consolas, monospace;
+  --c2-font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+
+  /* Container-query flip threshold (region width) */
+  --c2-wide-threshold: 480px;
+}
+
+/* -----------------------------------------------------------------------------
+ * 2. Shell structure — a single static CSS Grid (no transitions, no toggles)
+ * -------------------------------------------------------------------------- */
+.c2-appshell {
+  box-sizing: border-box;
+  display: grid;
+  width: 100vw;
+  height: 100vh;
+  /* grid-template-columns / -rows are injected inline from the config sizes.
+     Omitted side regions resolve to `0px` so `center` (1fr) reclaims space. */
+  gap: var(--c2-gap);
+  padding: var(--c2-gap);
+  overflow: hidden;
+  background: var(--c2-canvas-bg);
+  color: var(--c2-text);
+  font-family: var(--c2-font-sans);
+}
+
+.c2-appshell *,
+.c2-appshell *::before,
+.c2-appshell *::after {
+  box-sizing: border-box;
+}
+
+/* -----------------------------------------------------------------------------
+ * 3. Region cell
+ * -------------------------------------------------------------------------- */
+.c2-region {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  gap: var(--c2-gap);
+  overflow: hidden;
+}
+
+/* Default item flow (a manifest `direction` overrides this inline). */
+.c2-region--row {
+  flex-direction: row;
+  align-items: stretch;
+}
+.c2-region--column {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+/* Frosted-glass chrome for the edge panels. */
+.c2-region--chrome {
+  padding: var(--c2-panel-padding);
+  background: var(--c2-panel-bg);
+  -webkit-backdrop-filter: blur(var(--c2-panel-blur));
+  backdrop-filter: blur(var(--c2-panel-blur));
+  border: var(--c2-panel-border);
+  border-radius: var(--c2-panel-radius);
+  box-shadow: var(--c2-panel-shadow);
+}
+
+/* The center (and any bare region) is a clean, frameless slot for the core
+   application content — a map, table, video feed, dashboard, etc. */
+.c2-region--bare {
+  padding: 0;
+  background: none;
+  border: none;
+  box-shadow: none;
+}
+
+/* -----------------------------------------------------------------------------
+ * 4. Component slot — the container-query host
+ * -------------------------------------------------------------------------- */
+.c2-slot {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  width: 100%;
+  height: 100%;
+  /* Establishes an inline-size containment context so the mounted component
+     can adapt to the WIDTH OF ITS REGION via @container queries. */
+  container-type: inline-size;
+  container-name: c2-region;
+}
+
+.c2-slot > * {
+  width: 100%;
+  height: 100%;
+}
+
+/* -----------------------------------------------------------------------------
+ * 5. Container-query utilities (components query their region width; no JS)
+ * -------------------------------------------------------------------------- */
+
+/* Column in narrow regions, row once the region is wide enough. */
+.c2-fluid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--c2-gap);
+}
+
+/* A list whose density tightens in narrow regions. */
+.c2-fluid-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+@container c2-region (min-width: 480px) {
+  .c2-fluid {
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .c2-fluid-list {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: var(--c2-gap);
+  }
+}
+
+@container c2-region (max-width: 479px) {
+  .c2-fluid,
+  .c2-fluid-list {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+@container c2-region (max-width: 240px) {
+  .c2-hide-narrow {
+    display: none;
+  }
+}

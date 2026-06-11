@@ -1,0 +1,61 @@
+{
+  "name": "@c2/layout-engine",
+  "version": "1.0.0",
+  "description": "Enterprise-grade, metadata-driven static 5-region app shell / layout engine. Zero runtime dependencies, data-driven CSS-Grid region allocation, glassmorphism tactical design system, and container-query fluid components.",
+  "keywords": [
+    "c2",
+    "command-and-control",
+    "layout-engine",
+    "metadata-driven",
+    "gis",
+    "map-overlay",
+    "react",
+    "dashboard",
+    "tactical-ui",
+    "glassmorphism"
+  ],
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./styles.css": "./dist/styles.css"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "demo": "vite --config demo/vite.config.ts",
+    "demo:build": "vite build --config demo/vite.config.ts",
+    "build:pack": "npm run build && npm pack",
+    "package:local": "npm run build && npm pack"
+  },
+  "dependencies": {},
+  "peerDependencies": {
+    "react": ">=18.0.0",
+    "react-dom": ">=18.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.19.21",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.2",
+    "vite": "^5.4.11"
+  }
+}
